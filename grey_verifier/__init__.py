@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-# python -u verify.py /tmp/emails.txt | tee /tmp/vemails.txt
-
-# from verify_email import verify_email
-
 import os
 import sys
 import argparse
@@ -12,7 +8,7 @@ import smtplib
 import socket
 import time
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 verbose = False
 
@@ -28,10 +24,11 @@ class EmailVerifierError(Exception):
 
 
 class EmailVerifier:
-    def __init__(self, helo: str, mailfrom: str, verbose=False):
+    def __init__(self, helo: str, mailfrom: str, verbose=False, timeout=10):
         self.helo = helo
         self.mailfrom = mailfrom
         self.verbose = verbose
+        self.timeout = timeout
 
     def get_best_mx(self, mxlist: list[dns.resolver.Answer]):
         mx_sorted = sorted([(int(x.preference), str(x.exchange)) for x in mxlist])
@@ -51,7 +48,7 @@ class EmailVerifier:
             # test resolve
             mx_ip = dns.resolver.resolve(mxRecord, 'A')[0].address
 
-            server = smtplib.SMTP(timeout=10)
+            server = smtplib.SMTP(timeout=self.timeout)
             server.set_debuglevel(self.verbose)
             server.connect(mxRecord)
             server.helo(self.helo)
@@ -80,6 +77,7 @@ def get_args():
     parser.add_argument('--file', '-f', help='email list')
     parser.add_argument('--from', dest='_from', default=def_from, help='email for MAIL FROM')
     parser.add_argument('--helo', default=def_helo, help='HELO host')
+    parser.add_argument('--timeout', metavar='N', type=int, default=10, help='Timeout for SMTP operations')
     parser.add_argument('--retry', metavar='N', type=int, default=60, help='Retry (in seconds) if get temporary 4xx error (greylisting)')
     parser.add_argument('--max-retry', metavar='N', type=int, default=0, help='Do not retry for more then N seconds (use 180+, maybe 600)')
     parser.add_argument('--verbose', '-v', default=False, action='store_true', help='Verbosity for verifier logic')
@@ -128,8 +126,7 @@ def main():
 
     maillist = list()
 
-    ev = EmailVerifier(helo=args.helo, mailfrom=args._from, verbose=args.smtp_verbose)
-
+    ev = EmailVerifier(helo=args.helo, mailfrom=args._from, timeout=args.timeout, verbose=args.smtp_verbose)
 
     if args.email:
         try:
