@@ -60,7 +60,7 @@ To pass greylisting protection, use `--max-retry N` option to set retry limit (i
 If you want to see how exactly verification happens for email address, use `-v` / `--verbose` to see internal debug messages and `-s` / `--smtp-verbose` to see SMTP conversation. Example:
 
 ~~~
-$ email_verifier -sv yaroslaff@gmail.com
+$ grey-verifier -sv yaroslaff@gmail.com
 # Verifying yaroslaff@gmail.com
 connect: to ('gmail-smtp-in.l.google.com.', 25) None
 reply: b'220 mx.google.com ESMTP 2adb3069b0e04-52ed252cfc0si2901698e87.159 - gsmtp\r\n'
