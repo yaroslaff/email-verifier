@@ -6,7 +6,7 @@ requires = ["hatchling", "wheel"]
 build-backend = "hatchling.build"
 
 [project]
-name="smtp_email_verifier"
+name="grey_verifier"
 dynamic = [ "version" ]
 
 dependencies = [
@@ -15,7 +15,7 @@ dependencies = [
 authors = [
   { name="Yaroslav Polyakov", email="yaroslaff@gmail.com" },
 ]
-description = "Email verified which does correct SMTP conversation: HELO / MAIL FROM / RCPT TO"
+description = "Smart SMTP email verifier which can even bypass greylisting!"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
@@ -25,12 +25,12 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yaroslaff/smtp-email-verifier"
-Issues = "https://github.com/yaroslaff/smtp-email-verifier/issues"
+Homepage = "https://github.com/yaroslaff/grey-verifier"
+Issues = "https://github.com/yaroslaff/grey-verifier/issues"
 
 
 [project.scripts]
-email_verifier = "smtp_email_verifier:main"
+grey_verifier = "grey_verifier:main"
 
 [tool.hatch.version]
-path = 'smtp_email_verifier/__init__.py'
+path = 'grey_verifier/__init__.py'

@@ -1,11 +1,9 @@
-# SMTP Email Verifier (python)
-SMTP Email Verifier makes correct SMTP conversation to verify email address or list of addresses
+# Grey verifier: Smart SMTP Email Verifier (python)
+Grey Verifier makes correct SMTP conversation to verify email address or list of addresses and properly handles 4xx SMTP errors (such as greylisting).
 
 This tool could be slow - it's not working parallel.
 
 verifier prints successfully verified email addresses to stdout, and failed addresses (and reason) to stderr.
-
-
 
 ## Why yet another mail list verifier?
 Because many other verifiers are working incorrectly, e.g. They use incorrect `HELO` host, do not issue `MAIL FROM` command before `RCPT TO` and on some mailserver this makes incorrect result (e.g. RCPT TO fails because of missed MAIL FROM, but not because something wrong with recipient).
@@ -18,43 +16,45 @@ SMTP Email verifier:
 
 ## Install
 ~~~
-pipx install smtp-email-verifier
+pipx install grey-verifier
 ~~~
 
 ## Usage
 ### Verify one email address
 ~~~
-$ email_verifier yaroslaff@gmail.com
+$ grey_verifier yaroslaff@gmail.com
 yaroslaff@gmail.com
 
-$ email_verifier yaroslaff-nosuchemail@gmail.com > /dev/null 
-yaroslaff-nosuchemail@gmail.com: RCPT TO error: 550 b"5.1.1 The email account that you tried to reach does not exist. Please try\n5.1.1 double-checking the recipient's email address for typos or\n5.1.1 unnecessary spaces. For more information, go to\n5.1.1  https://support.google.com/mail/?p=NoSuchUser 41be03b00d2f7-78e43192d3esi9685918a12.435 - gsmtp"
+$ grey_verifier yaroslaff-NoSuchEmail@gmail.com
+yaroslaff-NoSuchEmail@gmail.com: RCPT TO error: 550 b"5.1.1 The email account that you tried to reach does not exist. Please try\n5.1.1 double-checking the recipient's email address for typos or\n5.1.1 unnecessary spaces. For more information, go to\n5.1.1  https://support.google.com/mail/?p=NoSuchUser 38308e7fff4ca-2ef05d163c2si289891fa.270 - gsmtp"
 ~~~
 
-Optionally provide options `--helo HOSTNAME` and `--from ADDRESS`.
+Optionally provide options `--helo HOSTNAME` and `--from ADDRESS`. Some mail servers will give false negative results if will not like HELO or FROM address.
 
 
 ### Verify list
 ~~~
 # See verification status for each email address
-$ email_verifier -f /tmp/test.txt 
+$ grey_verifier -f /tmp/test.txt 
 aaa@example.com: DNS error for example.com
 bbb@example.com: DNS error for example.com
 yaroslaff@gmail.com
 
 # Get only verified emails
-$ email_verifier -f /tmp/test.txt 2> /dev/null 
+$ grey_verifier -f /tmp/test.txt 2> /dev/null 
 yaroslaff@gmail.com
 
 # Or with redirections and custom HELO and MAIL FROM address
-$ email_verifier -f /tmp/test.txt --helo localhost --from noreply@example.com > /tmp/test-ok.txt 2> /tmp/test-fail.txt
+$ grey_verifier -f /tmp/test.txt --helo localhost --from noreply@example.com > /tmp/test-ok.txt 2> /tmp/test-fail.txt
 # now get all failed addresses:
 $cut -f 1 -d: < /tmp/test-fail.txt
 ~~~
 
 
 ### Greylisting
-To pass greylisting protection, use `--max-retry N` option to set retry limit, e.g. `--max-retry 600`. Default value is 0 (no retries). If `--max-retry` is set, verifier will retry every `--retry N` seconds (default: 60), for up to `--max-retry` limit.
+To pass greylisting protection, use `--max-retry N` option to set retry limit (in seconds). If `--max-retry` is set, verifier will retry every `--retry N` seconds (default: 60), for up to `--max-retry` limit.
+
+> **Note**: Default value for `--max-retry` is 0 (retries disabled). Set it to something like `--max-retry 600` (or even more) to properly handle greylisting.
 
 ### Verbose
 If you want to see how exactly verification happens for email address, use `-v` / `--verbose` to see internal debug messages and `-s` / `--smtp-verbose` to see SMTP conversation. Example:
