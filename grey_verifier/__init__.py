@@ -7,14 +7,19 @@ import dns.resolver
 import smtplib
 import socket
 import time
+import datetime
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 verbose = False
 
 def vprint(*args, **kwargs):
     if verbose:
-        print(*args, **kwargs, flush=True)
+        if args:
+            timestamp = datetime.datetime.now().strftime('%H:%M:%S')
+            print("#", timestamp, *args, **kwargs, flush=True)
+        else:
+            print(**kwargs, flush=True)
 
 class EmailVerifierError(Exception):
     def __init__(self, message, smtp_code=None):
@@ -36,7 +41,7 @@ class EmailVerifier:
 
     def verify_email(self, email):
 
-        vprint(f"# Verifying {email}")
+        vprint(f"Verifying {email}")
 
         try:
             addressToVerify = email
@@ -107,7 +112,7 @@ def verify_list(ev: EmailVerifier, maillist: list, can_retry=False):
 
             if can_retry and e.smtp_code is not None and e.smtp_code >= 400 and e.smtp_code < 500:
                 retry_list.append(email)
-                vprint(f"# {email}: {e} (will retry)")
+                vprint(f"{email}: {e} (will retry)")
             else:
                 print(f"{email}: {e}", file=sys.stderr)
 
@@ -148,10 +153,10 @@ def main():
             next_retry = time.time() + args.retry
             can_retry = next_retry < last_retry
             retry_list = verify_list(ev, maillist, can_retry=can_retry)
-            vprint(f"# RETRY: {len(retry_list)} emails")
+            vprint(f"RETRY: {len(retry_list)} emails")
             maillist = retry_list
             if maillist:
-                vprint("# Sleep", args.retry, "seconds")
+                vprint("Sleep", args.retry, "seconds")
                 time.sleep(args.retry)
 
     

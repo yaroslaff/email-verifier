@@ -30,7 +30,7 @@ Issues = "https://github.com/yaroslaff/grey-verifier/issues"
 
 
 [project.scripts]
-grey_verifier = "grey_verifier:main"
+grey-verifier = "grey_verifier:main"
 
 [tool.hatch.version]
 path = 'grey_verifier/__init__.py'

@@ -22,10 +22,10 @@ pipx install grey-verifier
 ## Usage
 ### Verify one email address
 ~~~
-$ grey_verifier yaroslaff@gmail.com
+$ grey-verifier yaroslaff@gmail.com
 yaroslaff@gmail.com
 
-$ grey_verifier yaroslaff-NoSuchEmail@gmail.com
+$ grey-verifier yaroslaff-NoSuchEmail@gmail.com
 yaroslaff-NoSuchEmail@gmail.com: RCPT TO error: 550 b"5.1.1 The email account that you tried to reach does not exist. Please try\n5.1.1 double-checking the recipient's email address for typos or\n5.1.1 unnecessary spaces. For more information, go to\n5.1.1  https://support.google.com/mail/?p=NoSuchUser 38308e7fff4ca-2ef05d163c2si289891fa.270 - gsmtp"
 ~~~
 
@@ -35,17 +35,17 @@ Optionally provide options `--helo HOSTNAME` and `--from ADDRESS`. Some mail ser
 ### Verify list
 ~~~
 # See verification status for each email address
-$ grey_verifier -f /tmp/test.txt 
+$ grey-verifier -f /tmp/test.txt 
 aaa@example.com: DNS error for example.com
 bbb@example.com: DNS error for example.com
 yaroslaff@gmail.com
 
 # Get only verified emails
-$ grey_verifier -f /tmp/test.txt 2> /dev/null 
+$ grey-verifier -f /tmp/test.txt 2> /dev/null 
 yaroslaff@gmail.com
 
 # Or with redirections and custom HELO and MAIL FROM address
-$ grey_verifier -f /tmp/test.txt --helo localhost --from noreply@example.com > /tmp/test-ok.txt 2> /tmp/test-fail.txt
+$ grey-verifier -f /tmp/test.txt --helo localhost --from noreply@example.com > /tmp/test-ok.txt 2> /tmp/test-fail.txt
 # now get all failed addresses:
 $cut -f 1 -d: < /tmp/test-fail.txt
 ~~~
@@ -84,7 +84,7 @@ yaroslaff@gmail.com
 
 ### Command-line parameters
 ~~~
-usage: grey_verifier [-h] [--file FILE] [--from EMAIL] [--helo HELO] [--timeout N] [--retry N] [--max-retry N] [--verbose] [--smtp-verbose] [email]
+usage: grey-verifier [-h] [--file FILE] [--from EMAIL] [--helo HELO] [--timeout N] [--retry N] [--max-retry N] [--verbose] [--smtp-verbose] [email]
 
 positional arguments:
   email                 Email address to verify
