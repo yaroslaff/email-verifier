@@ -1,0 +1,38 @@
+[build-system]
+# requires = ["setuptools >= 40.6.0", "wheel"]
+requires = ["hatchling", "wheel"]
+
+# build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
+
+[project]
+name="smtp_email_verifier"
+dynamic = [ "version" ]
+
+dependencies = [
+    'pyopenssl',
+    'pem',
+    'certifi'
+]
+authors = [
+  { name="Yaroslav Polyakov", email="yaroslaff@gmail.com" },
+]
+description = "Email verified which does correct SMTP conversation: HELO / MAIL FROM / RCPT TO"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/yaroslaff/email_verifier"
+Issues = "https://github.com/yaroslaff/email_verifier/issues"
+
+
+[project.scripts]
+email_verifier = "smtp_email_verifier:main"
+
+[tool.hatch.version]
+path = 'smtp_email_verifier/__init__.py'
