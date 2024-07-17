@@ -75,7 +75,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('email', nargs='?', help='Email address to verify')
     parser.add_argument('--file', '-f', help='email list')
-    parser.add_argument('--from', dest='_from', default=def_from, help='email for MAIL FROM')
+    parser.add_argument('--from', dest='_from', metavar='EMAIL', default=def_from, help='email for MAIL FROM')
     parser.add_argument('--helo', default=def_helo, help='HELO host')
     parser.add_argument('--timeout', metavar='N', type=int, default=10, help='Timeout for SMTP operations')
     parser.add_argument('--retry', metavar='N', type=int, default=60, help='Retry (in seconds) if get temporary 4xx error (greylisting)')

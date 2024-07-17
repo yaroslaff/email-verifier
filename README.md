@@ -82,3 +82,21 @@ reply: retcode (221); Msg: b'2.0.0 closing connection 2adb3069b0e04-52ed252cfc0s
 yaroslaff@gmail.com
 ~~~
 
+### Command-line parameters
+~~~
+usage: grey_verifier [-h] [--file FILE] [--from EMAIL] [--helo HELO] [--timeout N] [--retry N] [--max-retry N] [--verbose] [--smtp-verbose] [email]
+
+positional arguments:
+  email                 Email address to verify
+
+options:
+  -h, --help            show this help message and exit
+  --file FILE, -f FILE  email list
+  --from EMAIL          email for MAIL FROM
+  --helo HELO           HELO host
+  --timeout N           Timeout for SMTP operations
+  --retry N             Retry (in seconds) if get temporary 4xx error (greylisting)
+  --max-retry N         Do not retry for more then N seconds (use 180+, maybe 600)
+  --verbose, -v         Verbosity for verifier logic
+  --smtp-verbose, -s    Verbosity for SMTP conversation
+~~~
