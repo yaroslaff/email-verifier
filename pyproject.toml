@@ -23,6 +23,9 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Topic :: Communications :: Email",
+    "Topic :: Communications :: Email :: Filters",
+    "Topic :: Communications :: Email :: Address Book"
 ]
 
 [project.urls]
