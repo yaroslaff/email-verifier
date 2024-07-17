@@ -8,6 +8,7 @@ build-backend = "hatchling.build"
 [project]
 name="grey_verifier"
 dynamic = [ "version" ]
+keywords = ["grey", "verifier", "SMTP", "email", "e-mail", "RCPT TO", "greylist", "greylisting", "mail", "validate", "bulk", "mailfrom", "MAIL FROM"]
 
 dependencies = [
   'dnspython'

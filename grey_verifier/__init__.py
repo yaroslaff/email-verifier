@@ -9,7 +9,7 @@ import socket
 import time
 import datetime
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 verbose = False
 
