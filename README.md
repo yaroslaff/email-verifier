@@ -52,28 +52,33 @@ $ email_verifier -f /tmp/test.txt --helo localhost --from noreply@example.com > 
 $cut -f 1 -d: < /tmp/test-fail.txt
 ~~~
 
+
+### Greylisting
+To pass greylisting protection, use `--max-retry N` option to set retry limit, e.g. `--max-retry 600`. Default value is 0 (no retries). If `--max-retry` is set, verifier will retry every `--retry N` seconds (default: 60), for up to `--max-retry` limit.
+
 ### Verbose
-If you want to see how exactly verification happens for email address, use `-v` / `--verbose`:
+If you want to see how exactly verification happens for email address, use `-v` / `--verbose` to see internal debug messages and `-s` / `--smtp-verbose` to see SMTP conversation. Example:
 
 ~~~
-$ email_verifier -v yaroslaff@gmail.com --helo localhost --from noreply@example.com
+$ email_verifier -sv yaroslaff@gmail.com
 # Verifying yaroslaff@gmail.com
 connect: to ('gmail-smtp-in.l.google.com.', 25) None
-reply: b'220 mx.google.com ESMTP 38308e7fff4ca-2eee192b083si25595201fa.355 - gsmtp\r\n'
-reply: retcode (220); Msg: b'mx.google.com ESMTP 38308e7fff4ca-2eee192b083si25595201fa.355 - gsmtp'
-connect: b'mx.google.com ESMTP 38308e7fff4ca-2eee192b083si25595201fa.355 - gsmtp'
-send: 'helo localhost\r\n'
+reply: b'220 mx.google.com ESMTP 2adb3069b0e04-52ed252cfc0si2901698e87.159 - gsmtp\r\n'
+reply: retcode (220); Msg: b'mx.google.com ESMTP 2adb3069b0e04-52ed252cfc0si2901698e87.159 - gsmtp'
+connect: b'mx.google.com ESMTP 2adb3069b0e04-52ed252cfc0si2901698e87.159 - gsmtp'
+send: 'helo mir.localdomain\r\n'
 reply: b'250 mx.google.com at your service\r\n'
 reply: retcode (250); Msg: b'mx.google.com at your service'
 send: 'mail FROM:<noreply@example.com>\r\n'
-reply: b'250 2.1.0 OK 38308e7fff4ca-2eee192b083si25595201fa.355 - gsmtp\r\n'
-reply: retcode (250); Msg: b'2.1.0 OK 38308e7fff4ca-2eee192b083si25595201fa.355 - gsmtp'
+reply: b'250 2.1.0 OK 2adb3069b0e04-52ed252cfc0si2901698e87.159 - gsmtp\r\n'
+reply: retcode (250); Msg: b'2.1.0 OK 2adb3069b0e04-52ed252cfc0si2901698e87.159 - gsmtp'
 send: 'rcpt TO:<yaroslaff@gmail.com>\r\n'
-reply: b'250 2.1.5 OK 38308e7fff4ca-2eee192b083si25595201fa.355 - gsmtp\r\n'
-reply: retcode (250); Msg: b'2.1.5 OK 38308e7fff4ca-2eee192b083si25595201fa.355 - gsmtp'
+reply: b'250 2.1.5 OK 2adb3069b0e04-52ed252cfc0si2901698e87.159 - gsmtp\r\n'
+reply: retcode (250); Msg: b'2.1.5 OK 2adb3069b0e04-52ed252cfc0si2901698e87.159 - gsmtp'
 send: 'quit\r\n'
-reply: b'221 2.0.0 closing connection 38308e7fff4ca-2eee192b083si25595201fa.355 - gsmtp\r\n'
-reply: retcode (221); Msg: b'2.0.0 closing connection 38308e7fff4ca-2eee192b083si25595201fa.355 - gsmtp'
+reply: b'221 2.0.0 closing connection 2adb3069b0e04-52ed252cfc0si2901698e87.159 - gsmtp\r\n'
+reply: retcode (221); Msg: b'2.0.0 closing connection 2adb3069b0e04-52ed252cfc0si2901698e87.159 - gsmtp'
 
 yaroslaff@gmail.com
 ~~~
+
