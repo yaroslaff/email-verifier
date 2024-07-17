@@ -10,9 +10,7 @@ name="smtp_email_verifier"
 dynamic = [ "version" ]
 
 dependencies = [
-    'pyopenssl',
-    'pem',
-    'certifi'
+  'dnspython'
 ]
 authors = [
   { name="Yaroslav Polyakov", email="yaroslaff@gmail.com" },
@@ -27,8 +25,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yaroslaff/email_verifier"
-Issues = "https://github.com/yaroslaff/email_verifier/issues"
+Homepage = "https://github.com/yaroslaff/smtp-email-verifier"
+Issues = "https://github.com/yaroslaff/smtp-email-verifier/issues"
 
 
 [project.scripts]
