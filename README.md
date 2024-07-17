@@ -13,7 +13,8 @@ Because many other verifiers are working incorrectly, e.g. They use incorrect `H
 SMTP Email verifier:
 1. Connects to main MX for domain (with lowest MX priority)
 2. Makes correct (configurable) SMTP conversation with `HELO` / `MAIL FROM` / `RCPT TO`
-3. For each failed email prints (easy to parse with cut -f 1 -d )
+3. For each failed email prints (easy to parse with `cut -f 1 -d:` )
+4. Supports Greylisting! If verification returns a temporary error, it will retry every `--retry` seconds for up to `--max-retry` seconds.
 
 ## Install
 ~~~

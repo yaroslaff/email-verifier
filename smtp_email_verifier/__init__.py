@@ -10,12 +10,22 @@ import argparse
 import dns.resolver
 import smtplib
 import socket
+import time
 
 __version__ = '0.1.0'
 
+verbose = False
+
+def vprint(*args, **kwargs):
+    if verbose:
+        print(*args, **kwargs, flush=True)
 
 class EmailVerifierError(Exception):
-    pass
+    def __init__(self, message, smtp_code=None):
+        self.message = message
+        self.smtp_code = smtp_code
+        super().__init__(message)
+
 
 class EmailVerifier:
     def __init__(self, helo: str, mailfrom: str, verbose=False):
@@ -29,8 +39,7 @@ class EmailVerifier:
 
     def verify_email(self, email):
 
-        if self.verbose:
-            print(f"# Verifying {email}", flush=True)
+        vprint(f"# Verifying {email}")
 
         try:
             addressToVerify = email
@@ -49,8 +58,7 @@ class EmailVerifier:
             server.mail(self.mailfrom)
             code, message = server.rcpt(email)
             server.quit()
-            if self.verbose:
-                print()
+            vprint()
             if code == 250:
                 return True            
         except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
@@ -58,9 +66,11 @@ class EmailVerifier:
         except Exception as e:
             raise EmailVerifierError(f"Other Error: {e}")
 
-        raise EmailVerifierError(f"RCPT TO error: {code} {message}")
+        raise EmailVerifierError(f"RCPT TO error: {code} {message}", smtp_code=code)
 
 def get_args():
+
+    global verbose
 
     def_from = 'noreply@example.com'
     def_helo = socket.getfqdn()
@@ -70,7 +80,10 @@ def get_args():
     parser.add_argument('--file', '-f', help='email list')
     parser.add_argument('--from', dest='_from', default=def_from, help='email for MAIL FROM')
     parser.add_argument('--helo', default=def_helo, help='HELO host')
-    parser.add_argument('--verbose', '-v', default=False, action='store_true', help='verbose')
+    parser.add_argument('--retry', metavar='N', type=int, default=60, help='Retry (in seconds) if get temporary 4xx error (greylisting)')
+    parser.add_argument('--max-retry', metavar='N', type=int, default=0, help='Do not retry for more then N seconds (use 180+, maybe 600)')
+    parser.add_argument('--verbose', '-v', default=False, action='store_true', help='Verbosity for verifier logic')
+    parser.add_argument('--smtp-verbose', '-s', default=False, action='store_true', help='Verbosity for SMTP conversation')
 
     args = parser.parse_args()
 
@@ -79,14 +92,43 @@ def get_args():
         parser.print_help()
         sys.exit(1)
 
+    verbose = args.verbose
+
     return args
+
+
+def verify_list(ev: EmailVerifier, maillist: list, can_retry=False): 
+
+    retry_list = list()
+
+    for email in maillist:
+        try:
+            r = ev.verify_email(email)
+            print(email, flush=True)
+        except EmailVerifierError as e:
+
+            if can_retry and e.smtp_code is not None and e.smtp_code >= 400 and e.smtp_code < 500:
+                retry_list.append(email)
+                vprint(f"# {email}: {e} (will retry)")
+            else:
+                print(f"{email}: {e}", file=sys.stderr)
+
+    return retry_list
 
 
 def main():
 
     args = get_args()
+    start = time.time()
 
-    ev = EmailVerifier(helo=args.helo, mailfrom=args._from, verbose=args.verbose)
+    if args.max_retry > 0:
+        last_retry = start + args.max_retry
+    else:
+        last_retry = 0
+
+    maillist = list()
+
+    ev = EmailVerifier(helo=args.helo, mailfrom=args._from, verbose=args.smtp_verbose)
 
 
     if args.email:
@@ -101,13 +143,22 @@ def main():
                 email = line.strip()
                 if not email:
                     continue
-                try:
-                    r = ev.verify_email(email)
-                    print(email, flush=True)
-                except EmailVerifierError as e:
-                    print(f"{email}: {e}", file=sys.stderr)
+                maillist.append(email)
 
 
-                    
+        while maillist:            
+            # check if next retry time will be too late
+            next_retry = time.time() + args.retry
+            can_retry = next_retry < last_retry
+            retry_list = verify_list(ev, maillist, can_retry=can_retry)
+            vprint(f"# RETRY: {len(retry_list)} emails")
+            maillist = retry_list
+            if maillist:
+                vprint("# Sleep", args.retry, "seconds")
+                time.sleep(args.retry)
+
+    
+
+
 if __name__ == '__main__':
     main()
