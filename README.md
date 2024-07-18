@@ -13,6 +13,7 @@ SMTP Email verifier:
 2. Makes correct (configurable) SMTP conversation with `HELO` / `MAIL FROM` / `RCPT TO`
 3. For each failed email prints (easy to parse with `cut -f 1 -d:` )
 4. Supports Greylisting! If verification returns a temporary error, it will retry every `--retry` seconds for up to `--max-retry` seconds.
+5. Supports IPv6 (and IPv4-only, sure). Yes, some recipients in your big maillist has main MX on IPv6 address.
 
 ## Install
 ~~~
@@ -84,7 +85,9 @@ yaroslaff@gmail.com
 
 ### Command-line parameters
 ~~~
-usage: grey-verifier [-h] [--file FILE] [--dns] [--from EMAIL] [--helo HELO] [--timeout N] [--retry N] [--max-retry N] [--verbose] [--smtp-verbose] [email]
+usage: grey-verifier [-h] [--file FILE] [-4] [--dns] [--from EMAIL] [--helo HELO] [--timeout N] [--retry N] [--max-retry N] [--verbose] [--smtp-verbose] [email]
+
+grey-verifier Email address verifier (0.1.6) which knows about SMTP, Greylisting and IPv6
 
 options:
   -h, --help            show this help message and exit
@@ -94,7 +97,8 @@ Main Options:
   --file FILE, -f FILE  email list
 
 Verification options:
-  --dns                 Simplified DNS-only domain check, without connecting to mailserver and checking mailbox
+  -4                    Check only IPv4 MXes, ignore IPv6 ones
+  --dns                 Simplified DNS-only domain check, without connecting to mailserver and checking recipient address
   --from EMAIL          email for MAIL FROM
   --helo HELO           HELO host
   --timeout N           Timeout for SMTP operations

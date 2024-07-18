@@ -9,7 +9,7 @@ import socket
 import time
 import datetime
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 verbose = False
 
@@ -29,16 +29,30 @@ class EmailVerifierError(Exception):
 
 
 class EmailVerifier:
-    def __init__(self, helo: str, mailfrom: str, verbose=False, timeout=10, dns_only=False):
+    def __init__(self, helo: str, mailfrom: str, verbose=False, timeout=10, dns_only=False, ipv4_only=False):
         self.helo = helo
         self.mailfrom = mailfrom
         self.verbose = verbose
         self.timeout = timeout
         self.dns_only = dns_only
+        self.ipv4_only = ipv4_only
 
     def get_best_mx(self, mxlist: list[dns.resolver.Answer]):
-        mx_sorted = sorted([(int(x.preference), str(x.exchange)) for x in mxlist])
-        return mx_sorted[0][1]
+        for mx in sorted([(int(x.preference), str(x.exchange)) for x in mxlist]):
+            mxhost = mx[1]
+            vprint(f"Trying MX {mxhost}")
+            if not self.ipv4_only:
+                # ipv6 part
+                mx_ipv6 = dns.resolver.resolve(mxhost, 'AAAA')[0].address
+                return mx_ipv6
+
+            # ipv4 part
+            try:
+                mx_ipv4 = dns.resolver.resolve(mxhost, 'A')[0].address
+            except dns.resolver.NoAnswer:
+                vprint(f"no IPv4 address for {mxhost}")
+                continue
+            return mx_ipv4
 
     def verify_email(self, email):
 
@@ -49,17 +63,19 @@ class EmailVerifier:
             domain = addressToVerify.split('@')[1]            
             records = dns.resolver.resolve(domain, 'MX')
 
-            mxRecord = self.get_best_mx(records)
+            mx_ip = self.get_best_mx(records)
 
             # test resolve
-            mx_ip = dns.resolver.resolve(mxRecord, 'A')[0].address
+            # print("resolve", mxRecord)
+            # mx_ip = dns.resolver.resolve(mxRecord, 'A')[0].address
 
             if self.dns_only:
                 return True
 
             server = smtplib.SMTP(timeout=self.timeout)
             server.set_debuglevel(self.verbose)
-            server.connect(mxRecord)
+            server.connect(mx_ip)
+            # server.connect(mxRecord)
             server.helo(self.helo)
             server.mail(self.mailfrom)
             code, message = server.rcpt(email)
@@ -81,13 +97,14 @@ def get_args():
     def_from = 'noreply@example.com'
     def_helo = socket.getfqdn()
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=f'grey-verifier Email address verifier ({__version__}) which knows about SMTP, Greylisting and IPv6')
     g = parser.add_argument_group('Main Options')
     g.add_argument('email', nargs='?', help='Email address to verify')
     g.add_argument('--file', '-f', help='email list')
 
     g = parser.add_argument_group('Verification options')
-    g.add_argument('--dns', default=False, action='store_true', help='Simplified DNS-only domain check, without connecting to mailserver and checking mailbox')
+    g.add_argument('-4', default=False, dest='ipv4', action='store_true', help='Check only IPv4 MXes, ignore IPv6 ones')
+    g.add_argument('--dns', default=False, action='store_true', help='Simplified DNS-only domain check, without connecting to mailserver and checking recipient address')
     g.add_argument('--from', dest='_from', metavar='EMAIL', default=def_from, help='email for MAIL FROM')
     g.add_argument('--helo', default=def_helo, help='HELO host')
     g.add_argument('--timeout', metavar='N', type=int, default=10, help='Timeout for SMTP operations')
@@ -143,7 +160,7 @@ def main():
 
     maillist = list()
 
-    ev = EmailVerifier(helo=args.helo, mailfrom=args._from, timeout=args.timeout, verbose=args.smtp_verbose, dns_only=args.dns)
+    ev = EmailVerifier(helo=args.helo, mailfrom=args._from, timeout=args.timeout, verbose=args.smtp_verbose, dns_only=args.dns, ipv4_only=args.ipv4)
 
     if args.email:
         try:
