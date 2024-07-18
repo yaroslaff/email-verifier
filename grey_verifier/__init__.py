@@ -9,7 +9,7 @@ import socket
 import time
 import datetime
 
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 
 verbose = False
 
@@ -43,8 +43,13 @@ class EmailVerifier:
             vprint(f"Trying MX {mxhost}")
             if not self.ipv4_only:
                 # ipv6 part
-                mx_ipv6 = dns.resolver.resolve(mxhost, 'AAAA')[0].address
-                return mx_ipv6
+                try:
+                    mx_ipv6 = dns.resolver.resolve(mxhost, 'AAAA')[0].address
+                except dns.resolver.NoAnswer:    
+                    vprint(f"no IPv6 address for {mxhost}")
+                else:
+                    vprint(f"IPv6 address for {mxhost} is {mx_ipv6}")
+                    return mx_ipv6
 
             # ipv4 part
             try:
@@ -52,6 +57,7 @@ class EmailVerifier:
             except dns.resolver.NoAnswer:
                 vprint(f"no IPv4 address for {mxhost}")
                 continue
+            vprint(f"IPv4 address for {mxhost} is {mx_ipv4}")
             return mx_ipv4
 
     def verify_email(self, email):
