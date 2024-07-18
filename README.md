@@ -84,19 +84,26 @@ yaroslaff@gmail.com
 
 ### Command-line parameters
 ~~~
-usage: grey-verifier [-h] [--file FILE] [--from EMAIL] [--helo HELO] [--timeout N] [--retry N] [--max-retry N] [--verbose] [--smtp-verbose] [email]
-
-positional arguments:
-  email                 Email address to verify
+usage: grey-verifier [-h] [--file FILE] [--dns] [--from EMAIL] [--helo HELO] [--timeout N] [--retry N] [--max-retry N] [--verbose] [--smtp-verbose] [email]
 
 options:
   -h, --help            show this help message and exit
+
+Main Options:
+  email                 Email address to verify
   --file FILE, -f FILE  email list
+
+Verification options:
+  --dns                 Simplified DNS-only domain check, without connecting to mailserver and checking mailbox
   --from EMAIL          email for MAIL FROM
   --helo HELO           HELO host
   --timeout N           Timeout for SMTP operations
-  --retry N             Retry (in seconds) if get temporary 4xx error (greylisting)
-  --max-retry N         Do not retry for more then N seconds (use 180+, maybe 600)
+
+Options for retries (Greylisting):
+  --retry N             Delay (in seconds) if get temporary 4xx error (greylisting) for each retry
+  --max-retry N         Do not retry for more then N seconds (use 180+, maybe 600).
+
+Verbosity:
   --verbose, -v         Verbosity for verifier logic
   --smtp-verbose, -s    Verbosity for SMTP conversation
 ~~~

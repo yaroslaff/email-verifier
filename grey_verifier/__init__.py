@@ -9,7 +9,7 @@ import socket
 import time
 import datetime
 
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 
 verbose = False
 
@@ -29,11 +29,12 @@ class EmailVerifierError(Exception):
 
 
 class EmailVerifier:
-    def __init__(self, helo: str, mailfrom: str, verbose=False, timeout=10):
+    def __init__(self, helo: str, mailfrom: str, verbose=False, timeout=10, dns_only=False):
         self.helo = helo
         self.mailfrom = mailfrom
         self.verbose = verbose
         self.timeout = timeout
+        self.dns_only = dns_only
 
     def get_best_mx(self, mxlist: list[dns.resolver.Answer]):
         mx_sorted = sorted([(int(x.preference), str(x.exchange)) for x in mxlist])
@@ -52,6 +53,9 @@ class EmailVerifier:
 
             # test resolve
             mx_ip = dns.resolver.resolve(mxRecord, 'A')[0].address
+
+            if self.dns_only:
+                return True
 
             server = smtplib.SMTP(timeout=self.timeout)
             server.set_debuglevel(self.verbose)
@@ -78,15 +82,23 @@ def get_args():
     def_helo = socket.getfqdn()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('email', nargs='?', help='Email address to verify')
-    parser.add_argument('--file', '-f', help='email list')
-    parser.add_argument('--from', dest='_from', metavar='EMAIL', default=def_from, help='email for MAIL FROM')
-    parser.add_argument('--helo', default=def_helo, help='HELO host')
-    parser.add_argument('--timeout', metavar='N', type=int, default=10, help='Timeout for SMTP operations')
-    parser.add_argument('--retry', metavar='N', type=int, default=60, help='Retry (in seconds) if get temporary 4xx error (greylisting)')
-    parser.add_argument('--max-retry', metavar='N', type=int, default=0, help='Do not retry for more then N seconds (use 180+, maybe 600)')
-    parser.add_argument('--verbose', '-v', default=False, action='store_true', help='Verbosity for verifier logic')
-    parser.add_argument('--smtp-verbose', '-s', default=False, action='store_true', help='Verbosity for SMTP conversation')
+    g = parser.add_argument_group('Main Options')
+    g.add_argument('email', nargs='?', help='Email address to verify')
+    g.add_argument('--file', '-f', help='email list')
+
+    g = parser.add_argument_group('Verification options')
+    g.add_argument('--dns', default=False, action='store_true', help='Simplified DNS-only domain check, without connecting to mailserver and checking mailbox')
+    g.add_argument('--from', dest='_from', metavar='EMAIL', default=def_from, help='email for MAIL FROM')
+    g.add_argument('--helo', default=def_helo, help='HELO host')
+    g.add_argument('--timeout', metavar='N', type=int, default=10, help='Timeout for SMTP operations')
+
+    g = parser.add_argument_group('Options for retries (Greylisting)')
+    g.add_argument('--retry', metavar='N', type=int, default=60, help='Delay (in seconds) if get temporary 4xx error (greylisting) for each retry')
+    g.add_argument('--max-retry', metavar='N', type=int, default=0, help='Do not retry for more then N seconds (use 180+, maybe 600).')
+
+    g = parser.add_argument_group('Verbosity')
+    g.add_argument('--verbose', '-v', default=False, action='store_true', help='Verbosity for verifier logic')
+    g.add_argument('--smtp-verbose', '-s', default=False, action='store_true', help='Verbosity for SMTP conversation')
 
     args = parser.parse_args()
 
@@ -131,7 +143,7 @@ def main():
 
     maillist = list()
 
-    ev = EmailVerifier(helo=args.helo, mailfrom=args._from, timeout=args.timeout, verbose=args.smtp_verbose)
+    ev = EmailVerifier(helo=args.helo, mailfrom=args._from, timeout=args.timeout, verbose=args.smtp_verbose, dns_only=args.dns)
 
     if args.email:
         try:
